@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class LiveclassesConfig(AppConfig):
-    name = 'liveclasses'
+    name = 'apps.liveclasses'
