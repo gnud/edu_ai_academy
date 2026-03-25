@@ -69,3 +69,10 @@ class ClassSessionStatus(models.TextChoices):
     LIVE = "live", "Live"
     ENDED = "ended", "Ended"
     CANCELED = "canceled", "Canceled"
+
+
+class SemesterStatus(models.TextChoices):
+    SCHEDULED = "scheduled", "Scheduled"
+    ACTIVE = "active", "Active"
+    COMPLETED = "completed", "Completed"
+    CANCELLED = "cancelled", "Cancelled"

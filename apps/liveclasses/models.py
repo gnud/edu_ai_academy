@@ -16,8 +16,8 @@ class Classroom(models.Model):
 
 
 class ClassSession(models.Model):
-    course = models.ForeignKey(
-        "academy.Course",
+    semester = models.ForeignKey(
+        "academy.Semester",
         on_delete=models.CASCADE,
         related_name="sessions",
     )

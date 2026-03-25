@@ -17,9 +17,9 @@ class ClassroomAdmin(admin.ModelAdmin):
 
 @admin.register(ClassSession)
 class ClassSessionAdmin(admin.ModelAdmin):
-    list_display = ("pk", "title", "course", "classroom", "status", "professor", "starts_at", "ends_at")
+    list_display = ("pk", "title", "semester", "classroom", "status", "professor", "starts_at", "ends_at")
     list_filter = ("status",)
-    search_fields = ("title", "course__title")
+    search_fields = ("title", "semester__name", "semester__course__title")
     inlines = [SessionParticipantInline]
 
 
