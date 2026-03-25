@@ -40,6 +40,13 @@ INSTALLED_APPS = [
 
     # Apps
     'apps.core.apps.CoreConfig',
+    'apps.academy.apps.AcademyConfig',
+    'apps.accounts.apps.AccountsConfig',
+    'apps.ai_tools.apps.AiToolsConfig',
+    'apps.collaboration.apps.CollaborationConfig',
+    'apps.communication.apps.CommunicationConfig',
+    'apps.liveclasses.apps.LiveclassesConfig',
+    'apps.moderation.apps.ModerationConfig',
 ]
 
 MIDDLEWARE = [
