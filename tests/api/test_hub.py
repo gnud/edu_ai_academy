@@ -17,10 +17,10 @@ URL = reverse('hub')
 # ── Authentication ─────────────────────────────────────────────────────────────
 
 class TestHubAuth:
-    def test_unauthenticated_returns_403(self, client):
-        # SessionAuthentication sends no WWW-Authenticate header → DRF returns 403
+    def test_unauthenticated_returns_401(self, client):
+        # JWTAuthentication sends WWW-Authenticate: Bearer → DRF returns 401
         res = client.get(URL)
-        assert res.status_code == 403
+        assert res.status_code == 401
 
     def test_authenticated_returns_200(self, auth_client):
         res = auth_client.get(URL)
