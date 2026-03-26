@@ -19,6 +19,7 @@ urlpatterns = [
         # Resources
         path('courses/',  include('apps.academy.urls')),
         path('classes/',  include('apps.liveclasses.urls')),
+        path('messages/', include('apps.communication.urls')),
         path('',          include('apps.core.urls')),
     ])),
 ]

@@ -53,10 +53,18 @@ class ReportStatus(models.TextChoices):
 
 
 class ThreadType(models.TextChoices):
-    INBOX = "inbox", "Inbox"
-    COMMENT = "comment", "Comment"
+    COURSE  = "course",  "Course Message"
+    PM      = "pm",      "Private Message"
+    AI      = "ai",      "AI Conversation"
+    SYSTEM  = "system",  "System"
     SUPPORT = "support", "Support"
-    REPORT = "report", "Report"
+
+
+class ParticipantFolder(models.TextChoices):
+    INBOX    = "inbox",    "Inbox"
+    ARCHIVED = "archived", "Archived"
+    SPAM     = "spam",     "Spam"
+    DRAFTS   = "drafts",   "Drafts"
 
 
 class GroupType(models.TextChoices):
