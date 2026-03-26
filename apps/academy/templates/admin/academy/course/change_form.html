@@ -1,0 +1,30 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+  {% if original %}
+    <li>
+      <a href="{% url 'admin:academy_course_toggle_active' original.pk %}"
+         class="historylink"
+         {% if not original.is_active %}
+           onclick="return confirm('Activate \'{{ original }}\'\nThis will make the course visible and operational.');"
+         {% else %}
+           onclick="return confirm('Deactivate \'{{ original }}\'\nThis will hide the course from normal operations.');"
+         {% endif %}>
+        {% if original.is_active %}Deactivate{% else %}Activate{% endif %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'admin:academy_course_toggle_publish' original.pk %}"
+         class="historylink"
+         {% if not original.is_published %}
+           onclick="return confirm('Publish \'{{ original }}\'\nThis will make the course publicly visible to students.');"
+         {% else %}
+           onclick="return confirm('Unpublish \'{{ original }}\'\nThis will hide the course from students.');"
+         {% endif %}>
+        {% if original.is_published %}Unpublish{% else %}Publish{% endif %}
+      </a>
+    </li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

@@ -1,11 +1,13 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import path
 
 from apps.core.enums import SemesterStatus
 from .models import AIAgent, Course, CoursePolicy, CourseMembership, Semester
-from .services import save_course, save_semester
+from .services import save_course, save_semester, toggle_course_published, toggle_course_active
 
 CREATE_ONLY_STATUSES = [
     (SemesterStatus.SCHEDULED, SemesterStatus.SCHEDULED.label),
@@ -106,9 +108,36 @@ class CourseAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     exclude = ("created_by",)
     inlines = [CoursePolicyInline, SemesterInline]
+    change_form_template = "admin/academy/course/change_form.html"
 
     def save_model(self, request, obj, form, change):
         save_course(obj, request.user, change)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path("<int:pk>/toggle-publish/", self.admin_site.admin_view(self.toggle_publish_view), name="academy_course_toggle_publish"),
+            path("<int:pk>/toggle-active/", self.admin_site.admin_view(self.toggle_active_view), name="academy_course_toggle_active"),
+        ]
+        return custom + urls
+
+    def toggle_publish_view(self, request, pk):
+        course = get_object_or_404(Course, pk=pk)
+        toggle_course_published(course)
+        if course.is_published:
+            self.message_user(request, f'"{course}" has been published.', messages.SUCCESS)
+        else:
+            self.message_user(request, f'"{course}" has been unpublished.', messages.ERROR)
+        return redirect("admin:academy_course_change", pk)
+
+    def toggle_active_view(self, request, pk):
+        course = get_object_or_404(Course, pk=pk)
+        toggle_course_active(course)
+        if course.is_active:
+            self.message_user(request, f'"{course}" has been activated.', messages.SUCCESS)
+        else:
+            self.message_user(request, f'"{course}" has been deactivated.', messages.ERROR)
+        return redirect("admin:academy_course_change", pk)
 
 
 @admin.register(Semester)
