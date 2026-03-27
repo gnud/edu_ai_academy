@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from apps.accounts.urls import password_reset_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,8 +16,10 @@ urlpatterns = [
         path('auth/token/',          TokenObtainPairView.as_view(),  name='token-obtain'),
         path('auth/token/refresh/',  TokenRefreshView.as_view(),     name='token-refresh'),
         path('auth/token/verify/',   TokenVerifyView.as_view(),      name='token-verify'),
+        path('auth/',                include(password_reset_urlpatterns)),
 
         # Resources
+        path('accounts/', include('apps.accounts.urls')),
         path('courses/',  include('apps.academy.urls')),
         path('classes/',  include('apps.liveclasses.urls')),
         path('messages/', include('apps.communication.urls')),

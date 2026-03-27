@@ -29,9 +29,9 @@ User = get_user_model()
 fake = Faker()
 
 FIXTURE_USERS = [
-    {'username': 'student', 'is_staff': False,  'is_superuser': False},
-    {'username': 'alice',   'is_staff': False,  'is_superuser': False},
-    {'username': 'admin',   'is_staff': True,   'is_superuser': True},
+    {'username': 'student', 'email': 'student@ai-academy.local', 'is_staff': False, 'is_superuser': False},
+    {'username': 'alice',   'email': 'alice@ai-academy.local',   'is_staff': False, 'is_superuser': False},
+    {'username': 'admin',   'email': 'admin@ai-academy.local',   'is_staff': True,  'is_superuser': True},
 ]
 
 
@@ -41,6 +41,7 @@ def _ensure_fixture_users(stdout=None) -> list:
         user, created = User.objects.get_or_create(
             username=spec['username'],
             defaults={
+                'email':         spec['email'],
                 'is_staff':      spec['is_staff'],
                 'is_superuser':  spec['is_superuser'],
                 'first_name':    spec['username'].capitalize(),
@@ -49,6 +50,9 @@ def _ensure_fixture_users(stdout=None) -> list:
         if created:
             user.set_password('pass')
             user.save()
+        elif not user.email:
+            user.email = spec['email']
+            user.save(update_fields=['email'])
             if stdout:
                 stdout.write(f'  created fixture user: {user.username}')
         UserProfile.objects.get_or_create(
