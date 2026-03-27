@@ -11,29 +11,67 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import CurrentUserSerializer
+from .serializers import (
+    ChangeEmailSerializer,
+    ChangePasswordSerializer,
+    CurrentUserSerializer,
+    ProfileUpdateSerializer,
+)
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
 class CurrentUserView(APIView):
-    """GET /api/accounts/me/ — return the authenticated user's profile."""
+    """
+    GET   /api/accounts/me/ — return the authenticated user's profile.
+    PATCH /api/accounts/me/ — update editable profile fields.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = CurrentUserSerializer(request.user)
-        return Response(serializer.data)
+        return Response(CurrentUserSerializer(request.user).data)
+
+    def patch(self, request):
+        serializer = ProfileUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(request.user, serializer.validated_data)
+        return Response(CurrentUserSerializer(request.user).data)
+
+
+class ChangePasswordView(APIView):
+    """POST /api/accounts/me/password/"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        return Response({'detail': 'Password updated successfully.'})
+
+
+class ChangeEmailView(APIView):
+    """POST /api/accounts/me/email/"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangeEmailSerializer(
+            data=request.data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        request.user.email = serializer.validated_data['new_email']
+        request.user.save(update_fields=['email'])
+        return Response(CurrentUserSerializer(request.user).data)
 
 
 class PasswordResetRequestView(APIView):
     """
     POST /api/auth/password/reset/
     Body: { username }
-
-    Generates a reset token and (in production) emails a link.
     Always returns 200 to avoid leaking whether the username exists.
-    In development the token is logged to the console.
     """
     permission_classes = [AllowAny]
 
@@ -42,12 +80,10 @@ class PasswordResetRequestView(APIView):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            # Return 200 regardless — don't reveal whether username exists.
             return Response({'detail': 'If the username exists, a reset link has been sent.'})
 
         token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-
+        uid   = urlsafe_base64_encode(force_bytes(user.pk))
         reset_link = f"{settings.FRONTEND_URL}/?token={token}&uid={uid}"
 
         if not user.email:
@@ -74,15 +110,12 @@ class PasswordResetRequestView(APIView):
 
 
 class PasswordResetConfirmView(APIView):
-    """
-    POST /api/auth/password/reset/confirm/
-    Body: { uid, token, new_password1, new_password2 }
-    """
+    """POST /api/auth/password/reset/confirm/"""
     permission_classes = [AllowAny]
 
     def post(self, request):
-        uid          = request.data.get('uid', '')
-        token        = request.data.get('token', '')
+        uid           = request.data.get('uid', '')
+        token         = request.data.get('token', '')
         new_password1 = request.data.get('new_password1', '')
         new_password2 = request.data.get('new_password2', '')
 
