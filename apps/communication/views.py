@@ -87,8 +87,7 @@ class ThreadDetailView(APIView):
 
     def delete(self, request, pk):
         _, participation = get_participant_thread(pk, request.user)
-        participation.folder = 'archived'
-        participation.save(update_fields=['folder'])
+        participation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
