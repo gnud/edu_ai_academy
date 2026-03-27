@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -129,6 +130,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+# ── Email ────────────────────────────────────────────────────────────────────
+# Prints emails to the console instead of sending them.
+# Switch to smtp.EmailBackend (+ credentials) when ready for production.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ── Django REST Framework ────────────────────────────────────────────────────
 
