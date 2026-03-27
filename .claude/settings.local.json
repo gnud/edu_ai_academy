@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/damjan/PycharmProjects/gnud/eduai/ai_academy_frontend/**)",
+      "Bash(npx tsc:*)",
+      "Bash(bash -c \"cd /home/damjan/PycharmProjects/gnud/eduai/ai_academy_frontend && npx tsc --noEmit 2>&1 | head -60\")",
+      "Bash(bash -c \"cd /home/damjan/PycharmProjects/gnud/eduai/ai_academy_frontend && npx tsc --noEmit 2>&1\")",
+      "Bash(bash -c \"cd /home/damjan/PycharmProjects/gnud/eduai/ai_academy_frontend && git status && git branch\")"
+    ]
+  }
+}
