@@ -271,6 +271,9 @@ class SessionGroupingView(APIView):
         session = _get_session_as_professor(pk, request.user)
         if 'grouping_active' not in request.data:
             raise ValidationError({'grouping_active': 'Required.'})
-        session.grouping_active = bool(request.data['grouping_active'])
+        active = bool(request.data['grouping_active'])
+        session.grouping_active = active
         session.save(update_fields=['grouping_active'])
+        if not active:
+            session.groups.all().delete()
         return Response({'grouping_active': session.grouping_active})
