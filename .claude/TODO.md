@@ -48,7 +48,7 @@ Tasks for Claude. Each task has a status, optional priority, and optional notes.
 
 <!-- Add tasks below. Claude will pick them up top-to-bottom unless priority says otherwise. -->
 
-- [ ] Live classes <F> <B> — Classroom rendered with chair sits and one desk at top for the professor.
+- [x] Live classes <F> <B> — Classroom rendered with chair sits and one desk at top for the professor.
  - Context: apps/liveclasses + new React page
  - Components:
    - Classroom
@@ -68,3 +68,7 @@ Tasks for Claude. Each task has a status, optional priority, and optional notes.
    - AI widget on professor's desk (mac mini style); click → AI chat (scoped to course policies)
    - If professor absent → AI moves to professor's chair, mac mini stays, but AI profesors can answer what the professor would
    - Make all the API endpoint views/serializers/models in DRF as needed by the UI needs
+
+- [x] Live classes <B> — Management command to seed scheduled classrooms (few at Now, more items at next days in the week), semester data, for all users
+or argument flag to select for which users to be mandatorily included 
+ - Context: apps/liveclasses
