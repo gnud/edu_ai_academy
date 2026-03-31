@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ClassSession, Classroom, SessionParticipant
+from .models import ClassSession, Classroom, ClassroomGroup, ClassroomGroupMember, SessionParticipant
 
 # Deterministic avatar colours — derived from user pk so they never change.
 _AVATAR_COLORS = [
@@ -41,6 +41,43 @@ class SessionParticipantSerializer(serializers.ModelSerializer):
         ]
 
 
+class ClassroomGroupMemberSerializer(serializers.ModelSerializer):
+    user_id      = serializers.SerializerMethodField()
+    full_name    = serializers.SerializerMethodField()
+    avatar_color = serializers.SerializerMethodField()
+    role         = serializers.CharField(source='participant.role', read_only=True)
+
+    def get_user_id(self, obj) -> int | None:
+        return obj.participant.user_id
+
+    def get_full_name(self, obj) -> str:
+        if obj.participant.user:
+            return obj.participant.user.get_full_name() or obj.participant.user.username
+        return ''
+
+    def get_avatar_color(self, obj) -> str:
+        if obj.participant.user:
+            return _AVATAR_COLORS[obj.participant.user.pk % len(_AVATAR_COLORS)]
+        return '#6b7280'
+
+    class Meta:
+        model = ClassroomGroupMember
+        fields = ['id', 'user_id', 'full_name', 'avatar_color', 'role']
+
+
+class ClassroomGroupSerializer(serializers.ModelSerializer):
+    members      = ClassroomGroupMemberSerializer(many=True, read_only=True)
+    thread_id    = serializers.IntegerField(source='thread.id', read_only=True, allow_null=True)
+    member_count = serializers.SerializerMethodField()
+
+    def get_member_count(self, obj) -> int:
+        return obj.members.count()
+
+    class Meta:
+        model = ClassroomGroup
+        fields = ['id', 'name', 'is_active', 'thread_id', 'member_count', 'members', 'created_at']
+
+
 class ClassSessionSerializer(serializers.ModelSerializer):
     classroom      = ClassroomSerializer(read_only=True)
     course_title   = serializers.CharField(source='semester.course.title',  read_only=True)
@@ -56,7 +93,7 @@ class ClassSessionSerializer(serializers.ModelSerializer):
             'starts_at', 'ends_at', 'duration_minutes',
             'classroom',
             'course_title', 'course_slug', 'semester_name',
-            'professor_name',
+            'professor_name', 'grouping_active',
             'created_at',
         ]
 
@@ -84,10 +121,11 @@ class ClassSessionDetailSerializer(ClassSessionSerializer):
     professor_id = serializers.IntegerField(source='professor.id', read_only=True)
     participants = serializers.SerializerMethodField()
     ai_agent     = serializers.SerializerMethodField()
+    groups       = serializers.SerializerMethodField()
 
     class Meta(ClassSessionSerializer.Meta):
         fields = ClassSessionSerializer.Meta.fields + [
-            'professor_id', 'participants', 'ai_agent',
+            'professor_id', 'participants', 'ai_agent', 'groups',
         ]
 
     def get_participants(self, obj) -> list:
@@ -107,3 +145,7 @@ class ClassSessionDetailSerializer(ClassSessionSerializer):
         if ai_p and ai_p.ai_agent:
             return AIAgentInfoSerializer(ai_p.ai_agent).data
         return None
+
+    def get_groups(self, obj) -> list:
+        qs = obj.groups.prefetch_related('members__participant__user')
+        return ClassroomGroupSerializer(qs, many=True).data

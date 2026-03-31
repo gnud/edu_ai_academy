@@ -59,6 +59,8 @@ class ClassSession(models.Model):
         related_name="created_sessions",
     )
 
+    grouping_active = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -104,3 +106,41 @@ class SessionParticipant(models.Model):
                 name="session_participant_user_xor_ai_agent",
             )
         ]
+
+
+class ClassroomGroup(models.Model):
+    """A named group of students within a session, with its own chat thread."""
+    session = models.ForeignKey(
+        "liveclasses.ClassSession",
+        on_delete=models.CASCADE,
+        related_name="groups",
+    )
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    thread = models.OneToOneField(
+        "communication.Thread",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="classroom_group",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.session_id})"
+
+
+class ClassroomGroupMember(models.Model):
+    group = models.ForeignKey(
+        ClassroomGroup,
+        on_delete=models.CASCADE,
+        related_name="members",
+    )
+    participant = models.ForeignKey(
+        SessionParticipant,
+        on_delete=models.CASCADE,
+        related_name="group_memberships",
+    )
+
+    class Meta:
+        unique_together = ("group", "participant")
