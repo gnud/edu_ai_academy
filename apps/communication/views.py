@@ -65,7 +65,7 @@ class ThreadListCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         thread = serializer.save()
         out = ThreadDetailSerializer(thread, context={'request': request})
-        return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response(out.data, status=status.HTTP_200_OK)
 
 
 class ThreadDetailView(APIView):

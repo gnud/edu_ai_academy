@@ -1,3 +1,4 @@
+from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -114,6 +115,20 @@ class ThreadCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         participant_ids = validated_data.pop('participant_ids', [])
         request = self.context['request']
+        user_ids = set(participant_ids) | {request.user.id}
+
+        # For PM threads, reuse an existing thread between the exact same participants.
+        if validated_data.get('thread_type') == 'pm':
+            existing = (
+                Thread.objects.filter(thread_type='pm')
+                .annotate(pcount=models.Count('participants'))
+                .filter(pcount=len(user_ids))
+            )
+            for uid in user_ids:
+                existing = existing.filter(participants__user_id=uid)
+            thread = existing.first()
+            if thread:
+                return thread
 
         thread = Thread.objects.create(
             created_by=request.user,
@@ -121,7 +136,6 @@ class ThreadCreateSerializer(serializers.ModelSerializer):
         )
 
         # Always add the creator as a participant.
-        user_ids = set(participant_ids) | {request.user.id}
         for uid in user_ids:
             ThreadParticipant.objects.get_or_create(thread=thread, user_id=uid)
 
