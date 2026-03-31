@@ -101,3 +101,9 @@ or argument flag to select for which users to be mandatorily included
    - Group button changes to Ungroup or Deactivate Grouping upon you want to stop the group mode, the groups tab is disabled 
    - Banner on top/right states grouping active and other stats, total students, current professor, count of absent students
    - Groups have chat windows with multiple members, note the badges for roles to distinguish students and professors and others
+
+- [x] Live classes <F> <B> — BUG fix: Chat window group participants
+  - Context: apps/liveclasses + update frontend chat
+ - Notes:
+   - Below the class room tables there is Groups island, get rid of it
+   - kick is not working: "[31/Mar/2026 17:40:58] "DELETE /api/classes/Z/groups/X/members/Y/ HTTP/1.1" 404" backend API call not implemented
