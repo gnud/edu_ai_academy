@@ -83,3 +83,21 @@ or argument flag to select for which users to be mandatorily included
    - Make sure the chat block component allows colors if more than one receiver aka left side
    - Make sure the chat block component shows a timestamp and participant avatar + name if more than one participant
    - Make sure the chat block component shows badge of roles type: professor, admin, support, ai bot
+
+- [x] Live classes <F> <B> — Chat window group participants
+  - Context: apps/liveclasses + update frontend chat
+  - Components:
+   - chat window
+   - sticky Tab group manager
+   - stats list
+ - Notes:
+   - A professor signed in Live Classes can select the student's tables and group them
+   - A toolbar with actions, group button
+   - Clicking "Group button"
+     - will open a group manager, where professor can create a new group
+     - and add available students
+     - and set group mode active, also displayed in the status list
+   - Groups will be accessible as a sticky tab at the Page right side middle, clicking it will open list of groups and count badge
+   - Group button changes to Ungroup or Deactivate Grouping upon you want to stop the group mode, the groups tab is disabled 
+   - Banner on top/right states grouping active and other stats, total students, current professor, count of absent students
+   - Groups have chat windows with multiple members, note the badges for roles to distinguish students and professors and others
