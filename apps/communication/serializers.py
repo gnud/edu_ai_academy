@@ -6,12 +6,23 @@ from .models import Message, Thread, ThreadParticipant
 
 
 class SenderSerializer(serializers.Serializer):
-    id       = serializers.IntegerField()
-    username = serializers.CharField()
+    id        = serializers.IntegerField()
+    username  = serializers.CharField()
     full_name = serializers.SerializerMethodField()
+    role      = serializers.SerializerMethodField()
 
     def get_full_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
+
+    def get_role(self, obj) -> str | None:
+        if obj.is_superuser or obj.is_staff:
+            return 'admin'
+        groups = {g.name for g in obj.groups.all()}
+        if 'professor' in groups:
+            return 'professor'
+        if 'support' in groups:
+            return 'support'
+        return None
 
 
 class MessageSerializer(serializers.ModelSerializer):

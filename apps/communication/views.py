@@ -21,7 +21,7 @@ def get_participant_thread(thread_id: int, user) -> tuple[Thread, ThreadParticip
     """Return (thread, participation) or raise 404 / 403."""
     try:
         thread = Thread.objects.prefetch_related(
-            'participants__user', 'messages__sender',
+            'participants__user', 'messages__sender', 'messages__sender__groups',
         ).get(pk=thread_id)
     except Thread.DoesNotExist:
         raise NotFound("Thread not found.")
@@ -100,7 +100,7 @@ class MessageListCreateView(APIView):
 
     def get(self, request, pk):
         thread, _ = get_participant_thread(pk, request.user)
-        msgs = thread.messages.select_related('sender').all()
+        msgs = thread.messages.select_related('sender').prefetch_related('sender__groups').all()
         return Response(MessageSerializer(msgs, many=True).data)
 
     def post(self, request, pk):

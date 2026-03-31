@@ -72,3 +72,14 @@ Tasks for Claude. Each task has a status, optional priority, and optional notes.
 - [x] Live classes <B> — Management command to seed scheduled classrooms (few at Now, more items at next days in the week), semester data, for all users
 or argument flag to select for which users to be mandatorily included 
  - Context: apps/liveclasses
+
+- [x] Live classes <F> <B> — Chat window left and right directions for participants
+ - Context: apps/liveclasses + update frontend chat
+ - Components:
+   - chat window
+   - chat block
+ - Notes:
+   - Make sure the left side shows the other chat participant and right are sender messages, each message uses a chat block component
+   - Make sure the chat block component allows colors if more than one receiver aka left side
+   - Make sure the chat block component shows a timestamp and participant avatar + name if more than one participant
+   - Make sure the chat block component shows badge of roles type: professor, admin, support, ai bot
