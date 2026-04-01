@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ClassSession, Classroom, ClassroomGroup, ClassroomGroupMember, SessionParticipant
+from .models import BlackboardFile, BlackboardState, ClassSession, Classroom, ClassroomGroup, ClassroomGroupMember, SessionParticipant
 
 # Deterministic avatar colours — derived from user pk so they never change.
 _AVATAR_COLORS = [
@@ -149,3 +149,24 @@ class ClassSessionDetailSerializer(ClassSessionSerializer):
     def get_groups(self, obj) -> list:
         qs = obj.groups.prefetch_related('members__participant__user')
         return ClassroomGroupSerializer(qs, many=True).data
+
+
+class BlackboardFileSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj) -> str | None:
+        if obj.file:
+            return obj.file.url  # root-relative path, e.g. /media/...
+        return None
+
+    class Meta:
+        model = BlackboardFile
+        fields = ['id', 'name', 'file_type', 'url', 'uploaded_at']
+
+
+class BlackboardStateSerializer(serializers.ModelSerializer):
+    active_file = BlackboardFileSerializer(read_only=True)
+
+    class Meta:
+        model = BlackboardState
+        fields = ['active_file', 'is_fullscreen', 'is_live', 'scroll_y', 'zoom', 'rotation', 'media_playing']

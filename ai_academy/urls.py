@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import (
@@ -25,4 +27,4 @@ urlpatterns = [
         path('messages/', include('apps.communication.urls')),
         path('',          include('apps.core.urls')),
     ])),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
