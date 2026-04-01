@@ -107,3 +107,23 @@ or argument flag to select for which users to be mandatorily included
  - Notes:
    - Below the class room tables there is Groups island, get rid of it
    - kick is not working: "[31/Mar/2026 17:40:58] "DELETE /api/classes/Z/groups/X/members/Y/ HTTP/1.1" 404" backend API call not implemented
+
+- [x] Live classes <F> <B> — Blackboard
+  - Components:
+    - Blackboard
+    - Filemanager
+    - Control Toolbar
+  - Context: apps/liveclasses + blackboard slideshow
+ - Notes:
+   - Create a file manager where professor/staff can upload files (text, markdown, pdf, videos, music, images)
+   - Upon clicking on the blackboard professor/staff blackboard goes fullscreen, and staff can select files from the file manager on the left
+   and clicking the file loads it in the blackboard
+   - Blackboard toolbar buttons (Control Toolbar)
+       - Start — will make sure all participants will activate the blackboard in fullscreen
+       - Stop — will make sure all participants will deactivate fullscreen
+       - Broadcast - will emit currently selected file, the broadcast file will have a Live icon on it
+       - Scroll buttons - up/down will emit commands to the blackboard among all the participants to vertically scroll the file content
+       - Zoom/"Zoom out" - for images only and PDF and text
+       - Play/Pause - for videos/music only
+       - Rotate - only fHoor images/pdf
+   - Rules: Students may not exit fullscreen

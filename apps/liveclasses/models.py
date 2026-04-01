@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from apps.core import enums as core_enums
@@ -144,3 +145,43 @@ class ClassroomGroupMember(models.Model):
 
     class Meta:
         unique_together = ("group", "participant")
+
+
+class BlackboardFile(models.Model):
+    """A file uploaded by the professor for display on the blackboard."""
+    FILE_TYPE_CHOICES = [
+        ('text',     'Plain Text'),
+        ('markdown', 'Markdown'),
+        ('pdf',      'PDF'),
+        ('image',    'Image'),
+        ('video',    'Video'),
+        ('audio',    'Audio'),
+    ]
+
+    session      = models.ForeignKey(ClassSession, on_delete=models.CASCADE, related_name='blackboard_files')
+    name         = models.CharField(max_length=255)
+    file         = models.FileField(upload_to='blackboard/%Y/%m/')
+    file_type    = models.CharField(max_length=20, choices=FILE_TYPE_CHOICES)
+    uploaded_by  = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    uploaded_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.name
+
+
+class BlackboardState(models.Model):
+    """Per-session blackboard state — polled by all participants."""
+    session        = models.OneToOneField(ClassSession, on_delete=models.CASCADE, related_name='blackboard_state')
+    active_file    = models.ForeignKey(BlackboardFile, on_delete=models.SET_NULL, null=True, blank=True)
+    is_fullscreen  = models.BooleanField(default=False)
+    is_live        = models.BooleanField(default=False)
+    scroll_y       = models.IntegerField(default=0)
+    zoom           = models.IntegerField(default=100)   # percentage
+    rotation       = models.IntegerField(default=0)     # 0 / 90 / 180 / 270
+    media_playing  = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"BlackboardState({self.session_id})"

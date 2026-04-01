@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.db.models import Q
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import NotFound
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,9 +11,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.core.enums import AttendanceStatus, Role
 from apps.academy.models import CourseMembership
 from apps.communication.models import Thread, ThreadParticipant
-from .models import ClassSession, ClassroomGroup, ClassroomGroupMember, SessionParticipant
+from .models import BlackboardFile, BlackboardState, ClassSession, ClassroomGroup, ClassroomGroupMember, SessionParticipant
 from django.shortcuts import get_object_or_404
 from .serializers import (
+    BlackboardFileSerializer,
+    BlackboardStateSerializer,
     ClassSessionDetailSerializer,
     ClassSessionSerializer,
     ClassroomGroupSerializer,
@@ -277,3 +280,91 @@ class SessionGroupingView(APIView):
         if not active:
             session.groups.all().delete()
         return Response({'grouping_active': session.grouping_active})
+
+
+def _detect_file_type(content_type: str) -> str:
+    ct = content_type.lower()
+    if 'pdf' in ct:                                    return 'pdf'
+    if ct.startswith('image/'):                        return 'image'
+    if ct.startswith('video/'):                        return 'video'
+    if ct.startswith('audio/'):                        return 'audio'
+    if 'markdown' in ct or ct == 'text/x-markdown':   return 'markdown'
+    return 'text'
+
+
+class BlackboardFileListCreateView(APIView):
+    """
+    GET  /api/classes/<pk>/blackboard/files/  — list files (all authenticated participants)
+    POST /api/classes/<pk>/blackboard/files/  — upload file (professor only)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes     = [MultiPartParser, FormParser]
+
+    def get(self, request, pk):
+        session = get_object_or_404(ClassSession, pk=pk)
+        files   = session.blackboard_files.all()
+        return Response(BlackboardFileSerializer(files, many=True, context={'request': request}).data)
+
+    def post(self, request, pk):
+        session  = _get_session_as_professor(pk, request.user)
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            raise ValidationError({'file': 'A file is required.'})
+        name      = (request.data.get('name') or file_obj.name).strip()
+        file_type = _detect_file_type(file_obj.content_type)
+        bf = BlackboardFile.objects.create(
+            session=session, name=name, file=file_obj,
+            file_type=file_type, uploaded_by=request.user,
+        )
+        return Response(
+            BlackboardFileSerializer(bf, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class BlackboardFileDeleteView(APIView):
+    """DELETE /api/classes/<pk>/blackboard/files/<fid>/  — professor only"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk, fid):
+        _get_session_as_professor(pk, request.user)
+        bf = get_object_or_404(BlackboardFile, pk=fid, session_id=pk)
+        bf.file.delete(save=False)
+        bf.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BlackboardStateView(APIView):
+    """
+    GET   /api/classes/<pk>/blackboard/  — all authenticated participants (poll)
+    PATCH /api/classes/<pk>/blackboard/  — professor only (control commands)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        session = get_object_or_404(ClassSession, pk=pk)
+        state, _ = BlackboardState.objects.select_related('active_file').get_or_create(session=session)
+        return Response(BlackboardStateSerializer(state, context={'request': request}).data)
+
+    def patch(self, request, pk):
+        session  = _get_session_as_professor(pk, request.user)
+        state, _ = BlackboardState.objects.get_or_create(session=session)
+
+        if 'active_file_id' in request.data:
+            fid = request.data['active_file_id']
+            state.active_file = (
+                get_object_or_404(BlackboardFile, pk=fid, session=session)
+                if fid is not None else None
+            )
+
+        bool_fields = ['is_fullscreen', 'is_live', 'media_playing']
+        int_fields  = ['scroll_y', 'zoom', 'rotation']
+        for f in bool_fields:
+            if f in request.data:
+                setattr(state, f, bool(request.data[f]))
+        for f in int_fields:
+            if f in request.data:
+                setattr(state, f, int(request.data[f]))
+
+        state.save()
+        return Response(BlackboardStateSerializer(state, context={'request': request}).data)

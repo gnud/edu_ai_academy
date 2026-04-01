@@ -131,6 +131,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 
 # ── Email ────────────────────────────────────────────────────────────────────
